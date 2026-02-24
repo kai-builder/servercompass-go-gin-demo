@@ -116,7 +116,7 @@ const indexTemplate = `<!DOCTYPE html>
 <body>
     <header>
         <h1>{{ .title }}</h1>
-        <p>Only public variables are shown here - test change something</p>
+        <p>Only public variables are shown here - test change something second time</p>
     </header>
     <main>
         <section>
