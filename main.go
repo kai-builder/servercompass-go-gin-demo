@@ -101,7 +101,11 @@ func main() {
 
 	// The private variables are intentionally not exposed to the browser; they would be used server-side only.
 
-	router.Run()
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+	router.Run(":" + port)
 }
 
 const indexTemplate = `<!DOCTYPE html>
