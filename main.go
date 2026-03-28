@@ -70,8 +70,13 @@ func main() {
 		}
 
 		c.HTML(http.StatusOK, "index", gin.H{
-			"title": "Server Compass Demo Environment Variables",
-			"envs":  items,
+			"title":           "Server Compass Demo Environment Variables",
+			"envs":            items,
+			"clientIP":        c.ClientIP(),
+			"remoteAddr":      c.Request.RemoteAddr,
+			"xForwardedFor":   c.GetHeader("X-Forwarded-For"),
+			"xRealIP":         c.GetHeader("X-Real-IP"),
+			"xForwardedProto": c.GetHeader("X-Forwarded-Proto"),
 		})
 	})
 
@@ -81,6 +86,17 @@ func main() {
 			items = append(items, EnvItem{Key: key, Value: envValue(key)})
 		}
 		c.JSON(http.StatusOK, gin.H{"envs": items})
+	})
+
+	// IP address endpoint — useful for testing Trust Proxy Headers
+	router.GET("/api/ip", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip":        c.ClientIP(),
+			"remote_addr":      c.Request.RemoteAddr,
+			"x_forwarded_for":  c.GetHeader("X-Forwarded-For"),
+			"x_real_ip":        c.GetHeader("X-Real-IP"),
+			"x_forwarded_proto": c.GetHeader("X-Forwarded-Proto"),
+		})
 	})
 
 	// The private variables are intentionally not exposed to the browser; they would be used server-side only.
@@ -132,6 +148,47 @@ const indexTemplate = `<!DOCTYPE html>
             </div>
             {{ end }}
             <div class="api-hint">Try the JSON view at <code>/api/env</code>.</div>
+        </section>
+
+        <section style="margin-top: 24px;">
+            <h2 style="margin: 0 0 16px 0; font-size: 18px;">Your IP Info</h2>
+            <p style="margin: 0 0 12px 0; font-size: 13px; color: #9fb3c8;">
+                Use this to verify Trust Proxy Headers are working. With proper config,
+                <strong>Client IP</strong> should show your real IP, not the load balancer's.
+            </p>
+            <div class="env">
+                <div class="key">Client IP</div>
+                <div class="value">{{ .clientIP }}</div>
+            </div>
+            <div class="env">
+                <div class="key">Remote Addr</div>
+                <div class="value">{{ .remoteAddr }}</div>
+            </div>
+            <div class="env">
+                <div class="key">X-Forwarded-For</div>
+                {{ if .xForwardedFor }}
+                <div class="value">{{ .xForwardedFor }}</div>
+                {{ else }}
+                <div class="value not-set">Not set</div>
+                {{ end }}
+            </div>
+            <div class="env">
+                <div class="key">X-Real-IP</div>
+                {{ if .xRealIP }}
+                <div class="value">{{ .xRealIP }}</div>
+                {{ else }}
+                <div class="value not-set">Not set</div>
+                {{ end }}
+            </div>
+            <div class="env">
+                <div class="key">X-Forwarded-Proto</div>
+                {{ if .xForwardedProto }}
+                <div class="value">{{ .xForwardedProto }}</div>
+                {{ else }}
+                <div class="value not-set">Not set</div>
+                {{ end }}
+            </div>
+            <div class="api-hint">JSON view at <code>/api/ip</code>.</div>
         </section>
     </main>
 </body>
